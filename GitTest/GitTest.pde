@@ -18,7 +18,7 @@ void draw() {
   Line2D.LineIntersection isec = a.intersectLine(b);
   boolean isIntersect = (isec.getType() == Line2D.LineIntersection.Type.INTERSECTING); 
   if (isIntersect) {
-    gfx.circle(isec.getPos(), 5);
+    gfx.circle(isec.getPos(), 10);
   }
 }
 
