@@ -1,25 +1,45 @@
+import controlP5.*;
+
 import toxi.geom.*;
 import toxi.processing.*;
 import java.util.*;
 
 ToxiclibsSupport gfx;
+ControlP5 ui;
+
+float linePosX,linePosY;
+float offsetC,offsetD;
 
 void setup() {
   size(400, 400, P3D);
   gfx = new ToxiclibsSupport(this);
+  ui = new ControlP5(this);
+  ui.addSlider("linePosX").setPosition(20,20)
+     .setRange(150,300);
+  ui.addSlider("linePosY").setPosition(20,40)
+     .setRange(0,300);
+  ui.addSlider("offsetC").setPosition(20,60)
+     .setRange(-0.5,0.5);
+  ui.addSlider("offsetD").setPosition(20,80)
+     .setRange(-0.5,0.5);
 }
 
 void draw() {
   background(255);
 
+  pushMatrix();
   translate(width/2, height/2, 0);
+  if (keyPressed && key == ' ') {
+    rotateX(mouseY*0.01);
+    rotateY(mouseX*0.01);
+  }
   
-  float shapeH = mouseY - 50;
+  float shapeH = linePosY - 50;
   // static anchor points
   Vec2D pa = new Vec2D(-150, -shapeH/2);
   Vec2D pb = new Vec2D(150, pa.y);
-  Vec2D pc = new Vec2D(mouseX-150, -pb.y);
-  Vec2D pd = new Vec2D(-pc.x, pc.y);
+  Vec2D pc = new Vec2D(linePosX-150, -pb.y + offsetC * shapeH );
+  Vec2D pd = new Vec2D(-pc.x, -pb.y + offsetD * shapeH);
   Line2D a = new Line2D(pa, pc);
   Line2D b = new Line2D(pb, pd);
   gfx.line(a);
@@ -67,7 +87,7 @@ void draw() {
     strip.add(m4);
     strip.add(pa);
     
-    List<Vec2D> points = strip.getDecimatedVertices(30);
+    List<Vec2D> points = strip.getDecimatedVertices(10);
     
     Polygon2D poly = new Polygon2D(points);
     //Vec2D c = poly.getCentroid().invert();
@@ -76,6 +96,7 @@ void draw() {
     fill(255,0,255, 128);
     gfx.polygon2D(poly);
   }
+  popMatrix();
 }
 
 
