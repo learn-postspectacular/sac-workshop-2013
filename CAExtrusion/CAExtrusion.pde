@@ -10,11 +10,11 @@ int COLS = 50;
 int ROWS = 50;
 
 byte[] BIRTH_RULES = new byte[] { 
-  1
+  0
 };
 //byte[] SURVIVAL_RULES = new byte[] { 1, 4, 5, 7 };
 byte[] SURVIVAL_RULES = new byte[] { 
-  0, 1, 2, 3, 4, 5, 6, 7, 8
+  2,7,8
 };
 
 CAMatrix ca;
@@ -52,12 +52,16 @@ void draw() {
   // http://is.gd/5C0zej
   System.arraycopy(cells, 0, backup, 0, cells.length);
   history.add(backup);
+  if (history.size() > 20) {
+    history.remove(0);
+  }
   // draw cells in white
   fill(255);
   translate(width/2, height/2, 0);
   rotateX(PI/3);  // 60 deg
   rotateZ(PI/6);  // 30 deg
   scale(4);
+  TriangleMesh mesh = new TriangleMesh();
   // outermost loop iterates over all history slices
   for (int z = 0; z < history.size(); z++) {
     int[] slice = history.get(z);    // history[z]
@@ -68,14 +72,12 @@ void draw() {
         int cellV = slice[idx];
         // ignore dead cells
         if (cellV > 0) {
-          TriangleMesh box = (TriangleMesh)new AABB(new Vec3D(x,y,z), 0.5).toMesh();
-          box.flipVertexOrder();
-          gfx.mesh(box);
+          mesh.addMesh(new AABB(new Vec3D(x,y,z), 0.5).toMesh());
         }
       }
     }
   }
-
+  gfx.mesh(mesh);
   //drawGeneration2D(cells, r);
   popMatrix();
   // draw rule information in top/left corner
@@ -84,6 +86,7 @@ void draw() {
   text("survive: "+drawRuleInfo(SURVIVAL_RULES), 20, 40);
   if (doSave) {
     saveFrame(sessionID+"/####.png");
+    mesh.saveAsSTL(sessionID+"/"+nf(frameCount,4)+".stl");
   }
 }
 
