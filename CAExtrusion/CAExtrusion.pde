@@ -2,6 +2,7 @@ import toxi.geom.*;
 import toxi.sim.automata.*;
 import toxi.util.*;
 import toxi.processing.*;
+import toxi.geom.mesh.*;
 import java.util.*;
 
 // Matrix dimensions
@@ -67,8 +68,9 @@ void draw() {
         int cellV = slice[idx];
         // ignore dead cells
         if (cellV > 0) {
-          AABB box = new AABB(new Vec3D(x,y,z), 0.5);
-          gfx.box(box);
+          TriangleMesh box = (TriangleMesh)new AABB(new Vec3D(x,y,z), 0.5).toMesh();
+          box.flipVertexOrder();
+          gfx.mesh(box);
         }
       }
     }
