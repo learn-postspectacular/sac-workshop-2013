@@ -3,11 +3,15 @@ import toxi.sim.automata.*;
 import toxi.util.*;
 import toxi.processing.*;
 import toxi.geom.mesh.*;
+import toxi.volume.*;
 import java.util.*;
 
 // Matrix dimensions
 int COLS = 50;
 int ROWS = 50;
+int MAX_HISTORY = 20;
+
+Vec3D SCALE = new Vec3D(COLS, ROWS, MAX_HISTORY).scale(2);
 
 byte[] BIRTH_RULES = new byte[] { 
   0
@@ -19,9 +23,10 @@ byte[] SURVIVAL_RULES = new byte[] {
 
 CAMatrix ca;
 List<int[]> history = new ArrayList<int[]>(); 
+VolumetricSpace voxels;
 ToxiclibsSupport gfx;
 
-boolean doSave = false;
+boolean doSave = true;
 String sessionID = DateUtils.timeStamp();
 
 void setup() {
@@ -35,6 +40,8 @@ void setup() {
   ca.setRule(r);
   // see matrix with single cell organism
   ca.setStateAt(COLS/2, ROWS/2, 1);
+  // create container for voxel data
+  voxels=new VolumetricSpaceArray(SCALE, COLS, ROWS, MAX_HISTORY);
 }
 
 void draw() {
@@ -52,7 +59,7 @@ void draw() {
   // http://is.gd/5C0zej
   System.arraycopy(cells, 0, backup, 0, cells.length);
   history.add(backup);
-  if (history.size() > 20) {
+  if (history.size() > MAX_HISTORY) {
     history.remove(0);
   }
   // draw cells in white
@@ -60,25 +67,26 @@ void draw() {
   translate(width/2, height/2, 0);
   rotateX(PI/3);  // 60 deg
   rotateZ(PI/6);  // 30 deg
-  scale(4);
   TriangleMesh mesh = new TriangleMesh();
   // outermost loop iterates over all history slices
   for (int z = 0; z < history.size(); z++) {
     int[] slice = history.get(z);    // history[z]
     // process all cells for current slice
     for (int y = 0; y < ROWS; y++) {
-      for (int x = 0; x < COLS; x++) {
+      for (int x = 0; x < COLS; x+=2) {
         int idx = x + y * COLS;
-        int cellV = slice[idx];
-        // ignore dead cells
-        if (cellV > 0) {
-          mesh.addMesh(new AABB(new Vec3D(x,y,z), 0.5).toMesh());
-        }
+        int cellV = slice[idx];        
+        voxels.setVoxelAt(x,y,z, min(cellV, 1));
       }
     }
   }
+  voxels.closeSides();
+  IsoSurface surface=new ArrayIsoSurface(voxels);
+  surface.computeSurfaceMesh(mesh,0.5);
+  //mesh.flipVertexOrder();
   gfx.mesh(mesh);
   //drawGeneration2D(cells, r);
+  // revert back to 2D
   popMatrix();
   // draw rule information in top/left corner
   fill(0);
@@ -86,7 +94,7 @@ void draw() {
   text("survive: "+drawRuleInfo(SURVIVAL_RULES), 20, 40);
   if (doSave) {
     saveFrame(sessionID+"/####.png");
-    mesh.saveAsSTL(sessionID+"/"+nf(frameCount,4)+".stl");
+    mesh.saveAsOBJ(sketchPath(sessionID+"/"+nf(frameCount,4)+".obj"));
   }
 }
 
