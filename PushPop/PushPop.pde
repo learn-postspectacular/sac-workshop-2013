@@ -1,3 +1,10 @@
+/**
+ * Nested coordinate systems via pushMatrix/popMatrix
+ *
+ * This file is part of the SAC 2013 workshop project
+ * (c) 2013 Karsten Schmidt
+ * LGPLv3 licensed 
+ */
 size(500,500);
 pushMatrix();
 

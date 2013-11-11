@@ -1,3 +1,10 @@
+/**
+ * Recursive plane tiling inspired by crystal growth formations.
+ *
+ * This file is part of the SAC 2013 workshop project
+ * (c) 2013 Karsten Schmidt
+ * LGPLv3 licensed 
+ */
 import toxi.geom.*;
 import toxi.processing.*;
 import java.util.*;
@@ -7,7 +14,7 @@ RhomboGroup rg;
 
 float THETA = PI/3;
 float L = 50;
-int MAX_GENERATION = 3;
+int MAX_GEN = 3;
 
 void setup() {
   size(600, 600, P3D);
@@ -17,11 +24,7 @@ void setup() {
 
 void draw() {
   background(0);
-  stroke(255);
-  //noFill();
-  //translate(width/2, height/2, 0);
-  //rotateY(mouseX * 0.01);
-  //float len = map(mouseX, 0, width, 20, 200);
+  stroke(0);
   rg.draw();
 }
 
@@ -32,17 +35,16 @@ class RhomboGroup {
   int gen;
 
   RhomboGroup(Vec2D sp, int gen) {
-    println(sp+" " + gen);
     seedPos = sp;
     this.gen = gen;
     a = new Rhombohedron(sp, L, THETA, 0);
-    b = new Rhombohedron(sp, L, THETA, PI*2/3);
-    c = new Rhombohedron(sp, L, THETA, -PI*2/3);
+    b = new Rhombohedron(sp, L, THETA, THETA*2);
+    c = new Rhombohedron(sp, L, THETA, -THETA*2);
 
-    Vec2D n1 = new Rhombohedron(sp, L, THETA, PI/3).poly.get(2);
-    Vec2D n2 = new Rhombohedron(sp, L, THETA, PI).poly.get(2);
-    Vec2D n3 = new Rhombohedron(sp, L, THETA, -PI/3).poly.get(2);
-    if (gen < MAX_GENERATION) {
+    if (gen < MAX_GEN) {
+      Vec2D n1 = new Rhombohedron(sp, L, THETA, THETA).poly.get(2);
+      Vec2D n2 = new Rhombohedron(sp, L, THETA, PI).poly.get(2);
+      Vec2D n3 = new Rhombohedron(sp, L, THETA, -THETA).poly.get(2);
       ch1 = new RhomboGroup(n1, gen+1);
       ch2 = new RhomboGroup(n2, gen+1);
       ch3 = new RhomboGroup(n3, gen+1);
@@ -50,7 +52,7 @@ class RhomboGroup {
   }
 
   void draw() {
-    stroke(255-gen*30);
+    fill(255 - gen * 30);
     a.draw(); 
     b.draw(); 
     c.draw();
@@ -63,17 +65,10 @@ class RhomboGroup {
 }
 
 class Rhombohedron {
-  Vec2D seedPos;
-  float len;
-  float theta;
-  float phi;
+
   Polygon2D poly;
 
-  Rhombohedron(Vec2D p, float l, float t, float phi) {
-    seedPos = p;
-    len = l;
-    theta = t;
-    this.phi = phi;
+  Rhombohedron(Vec2D seedPos, float len, float theta, float phi) {
     poly = new Polygon2D();
     poly.add(seedPos);
     Vec2D delta = new Vec2D(len, 0).rotate(phi);
