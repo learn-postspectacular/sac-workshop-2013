@@ -13,16 +13,23 @@ import java.util.*;
 int MAX_LEN = 100;
 // max recursion limit
 int MAX_GEN = 3;
+// variance angle for growth direction per time step
+float THETA = PI/6;
 // branch chance per time step
-float BRANCH_CHANCE = 0.1;
+float BRANCH_CHANCE = 0.05;
+// branch angle variance
+float BRANCH_THETA = PI/3;
 
 ToxiclibsSupport gfx;
 Branch root;
 
+// switch to ensure growth remains in window bounds
+boolean doWrap = true;
+
 void setup() {
-  size(1650, 600);
+  size(1280, 600);
   gfx = new ToxiclibsSupport(this);
-  root = new Branch(new Vec2D(0, height/2), new Vec2D(1, 0), 10, PI/3, 0);
+  root = new Branch(new Vec2D(0, height/2), new Vec2D(1, 0), 10, THETA, 0);
 }
 
 void draw() {
@@ -54,12 +61,17 @@ class Branch {
 
   void grow() {
     if (path.size() < MAX_LEN) {
+      if (doWrap) {
+        Vec2D newPos = currPos.add(dir.scale(speed));
+        if (newPos.x < 0 || newPos.x > width) dir.x *= -1;
+        if (newPos.y < 0 || newPos.y > height) dir.y *= -1;
+      }
       currPos.addSelf(dir.scale(speed));
-      dir.rotate(random(-theta/2, theta/2));
+      dir.rotate(random(-0.5, 0.5) * THETA);
       path.add(currPos.copy());
-      //speed *= 0.995;
       if (generation < MAX_GEN && random(1) < BRANCH_CHANCE) {
-        Branch b = new Branch(currPos.copy(), dir.copy().rotate(random(-theta/2, theta/2)), speed * 0.99, theta, generation+1);
+        Vec2D branchDir = dir.getRotated(random(-0.5, 0.5) * BRANCH_THETA);
+        Branch b = new Branch(currPos.copy(), branchDir, speed * 0.99, theta, generation + 1);
         children.add(b);
       }
     }
@@ -69,7 +81,6 @@ class Branch {
   }
 
   void draw() {
-    stroke(255 - generation * 20);
     gfx.lineStrip2D(path);
     for (Branch c : children) {
       c.draw();
