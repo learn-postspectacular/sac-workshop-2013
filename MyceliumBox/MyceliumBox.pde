@@ -38,7 +38,7 @@ void setup() {
 
 void draw() {
   background(0);
-  stroke(255,50);
+  stroke(255, 50);
   noFill();
   translate(width/2, height/2, 0);
   rotateX(mouseY * 0.01);
@@ -80,7 +80,9 @@ class Branch {
     if (path.size() < MAX_LEN) {
       currPos.addSelf(dir.scale(speed));
       // constrain growth to given world bounds
-      currPos.constrain(BOUNDS);
+      if (!BOUNDS.containsPoint(currPos)) {
+        currPos.constrain(BOUNDS);
+      }
       // randomly rotate around all 3 axes
       dir.rotateX(random(-0.5, 0.5) * THETA)
         .rotateY(random(-0.5, 0.5) * THETA)
